@@ -1,0 +1,14 @@
+{
+  "drivers": [
+    { "id": "d1", "name": "Alice Johnson", "license": "DL-48291", "phone": "+1 555-0142", "available": true, "unavailableDates": [] },
+    { "id": "d2", "name": "Bob Smith", "license": "DL-77104", "phone": "+1 555-0198", "available": false, "unavailableDates": [] },
+    { "id": "d3", "name": "Carla Gomez", "license": "DL-91562", "phone": "+1 555-0117", "available": true, "unavailableDates": [] },
+    { "id": "d4", "name": "Daniel Osei", "license": "DL-33870", "phone": "+1 555-0163", "available": true, "unavailableDates": [] }
+  ],
+  "routes": [
+    { "id": "r1", "name": "Route A — City Loop", "origin": "Main Station", "destination": "Riverside Park", "scheduledTime": "08:00", "assignedDriverId": "d1" },
+    { "id": "r2", "name": "Route B — Airport Shuttle", "origin": "Central Depot", "destination": "Terminal 2", "scheduledTime": "09:30", "assignedDriverId": null },
+    { "id": "r3", "name": "Route C — Campus Express", "origin": "North Gate", "destination": "University", "scheduledTime": "07:15", "assignedDriverId": "d3" },
+    { "id": "r4", "name": "Route D — Harbor Run", "origin": "Fish Market", "destination": "Old Harbor", "scheduledTime": "14:00", "assignedDriverId": null }
+  ]
+}

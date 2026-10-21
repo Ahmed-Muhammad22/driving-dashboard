@@ -1,0 +1,131 @@
+<section class="page-head">
+  <h1>Routes</h1>
+  <p>Add new routes and assign drivers to them.</p>
+</section>
+
+@if (data.loaded()) {
+  <div class="form-layout">
+    <section class="card" aria-label="Add a new route">
+      <h2 class="card-title">Add a new route</h2>
+      <form [formGroup]="routeForm" (ngSubmit)="submit()" novalidate>
+        <div class="form-field">
+          <label for="route-name">Route name</label>
+          <input id="route-name" type="text" formControlName="name" placeholder="e.g. Route E — Market Square" />
+          @if (isInvalid('name')) {
+            <span class="field-error">Please enter a route name with at least 3 characters.</span>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="route-origin">Origin</label>
+          <input id="route-origin" type="text" formControlName="origin" placeholder="e.g. Main Station" />
+          @if (isInvalid('origin')) {
+            <span class="field-error">Origin is required.</span>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="route-destination">Destination</label>
+          <input id="route-destination" type="text" formControlName="destination" placeholder="e.g. Airport" />
+          @if (isInvalid('destination')) {
+            <span class="field-error">Destination is required.</span>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="route-time">Departure time</label>
+          <input id="route-time" type="time" formControlName="scheduledTime" />
+          @if (isInvalid('scheduledTime')) {
+            <span class="field-error">Please pick a departure time.</span>
+          }
+        </div>
+
+        <button class="btn btn-primary" type="submit">Add route</button>
+
+        @if (successMessage()) {
+          <p class="notice notice-success" role="status">{{ successMessage() }}</p>
+        }
+      </form>
+    </section>
+
+    <section class="card" aria-label="All routes">
+      <div class="card-head">
+        <h2>All routes ({{ filteredRoutes().length }})</h2>
+        <div class="inline-tools">
+          <div class="search-box">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input
+              type="search"
+              placeholder="Search routes or drivers…"
+              aria-label="Search routes"
+              [ngModel]="search()"
+              (ngModelChange)="search.set($event)"
+            />
+          </div>
+          <div class="filter-pills" role="group" aria-label="Filter routes by assignment status">
+            @for (option of routeFilterOptions; track option.value) {
+              <button
+                type="button"
+                class="pill-btn"
+                [class.active]="routeFilter() === option.value"
+                (click)="routeFilter.set(option.value)"
+              >
+                {{ option.label }}
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Route</th>
+              <th>Schedule</th>
+              <th>Status</th>
+              <th>Assign driver</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (route of filteredRoutes(); track route.id) {
+              <tr>
+              <td class="route-name" data-label="Route">{{ route.name }}</td>
+              <td class="route-schedule" data-label="Schedule">{{ route.origin }} → {{ route.destination }} · {{ route.scheduledTime }}</td>
+              <td data-label="Status">
+                  @if (route.assignedDriverId; as driverId) {
+                    <span class="badge badge-success">Assigned</span>
+                    <span class="assigned-to">{{ data.driverName(driverId) }}</span>
+                  } @else {
+                    <span class="badge badge-warning">Unassigned</span>
+                  }
+                </td>
+                <td data-label="Driver">
+                  <select
+                    class="assign-select"
+                    aria-label="Assign a driver"
+                    [ngModel]="route.assignedDriverId"
+                    (ngModelChange)="assign(route.id, $event)"
+                  >
+                    <option [ngValue]="null">— None —</option>
+                    @for (driver of data.drivers(); track driver.id) {
+                      <option [ngValue]="driver.id">
+                        {{ driver.name }}{{ driver.available ? '' : ' (off duty)' }}
+                      </option>
+                    }
+                  </select>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="empty-state">No routes match your search or filter.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+} @else {
+  <p class="loading-state">Loading routes…</p>
+}

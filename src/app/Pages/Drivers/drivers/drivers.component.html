@@ -1,0 +1,97 @@
+<section class="page-head">
+  <h1>Drivers</h1>
+  <p>Add new drivers and manage who is available for assignments.</p>
+</section>
+
+@if (data.loaded()) {
+  <div class="form-layout">
+    <section class="card" aria-label="Add a new driver">
+      <h2 class="card-title">Add a new driver</h2>
+      <form [formGroup]="driverForm" (ngSubmit)="submit()" novalidate>
+        <div class="form-field">
+          <label for="driver-name">Full name</label>
+          <input id="driver-name" type="text" formControlName="name" placeholder="e.g. Maria Chen" />
+          @if (isInvalid('name')) {
+            <span class="field-error">Please enter a name with at least 3 characters.</span>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="driver-license">License number</label>
+          <input id="driver-license" type="text" formControlName="license" placeholder="e.g. DL-55123" />
+          <span class="form-hint">3–12 characters: letters, digits or dashes.</span>
+          @if (isInvalid('license')) {
+            <span class="field-error">Please enter a valid license number.</span>
+          }
+        </div>
+
+        <div class="form-field">
+          <label for="driver-phone">Phone</label>
+          <input id="driver-phone" type="text" formControlName="phone" placeholder="e.g. +1 555-0107" />
+          @if (isInvalid('phone')) {
+            <span class="field-error">Please enter a valid phone number (at least 7 digits).</span>
+          }
+        </div>
+
+        <div class="form-field checkbox-field">
+          <input id="driver-available" type="checkbox" formControlName="available" />
+          <label for="driver-available">Available for assignments</label>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Add driver</button>
+
+        @if (successMessage()) {
+          <p class="notice notice-success" role="status">{{ successMessage() }}</p>
+        }
+      </form>
+    </section>
+
+    <section class="card" aria-label="All drivers">
+      <div class="card-head">
+        <h2>All drivers ({{ filteredDrivers().length }})</h2>
+        <div class="search-box">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input
+            type="search"
+            placeholder="Search by name, license or phone…"
+            aria-label="Search drivers"
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+          />
+        </div>
+      </div>
+
+      <div class="driver-grid">
+        @for (driver of filteredDrivers(); track driver.id) {
+          <article class="driver-card">
+            <div class="driver-card-head">
+              <span class="avatar" [class.avatar-off]="!driver.available">{{ initials(driver.name) }}</span>
+              <div>
+                <h3>{{ driver.name }}</h3>
+                <p>{{ driver.license }}</p>
+              </div>
+              <span class="badge" [class.badge-success]="driver.available" [class.badge-muted]="!driver.available">
+                {{ driver.available ? 'Available' : 'Off duty' }}
+              </span>
+            </div>
+            <dl>
+              <dt>Phone</dt>
+              <dd>{{ driver.phone }}</dd>
+              <dt>Assigned routes</dt>
+              <dd>{{ routeCount(driver.id) }}</dd>
+              <dt>Days off marked</dt>
+              <dd>{{ driver.unavailableDates.length }}</dd>
+            </dl>
+            <button type="button" class="btn btn-ghost btn-sm" (click)="data.toggleAvailability(driver.id)">
+              {{ driver.available ? 'Set off duty' : 'Set available' }}
+            </button>
+          </article>
+        } @empty {
+          <p class="empty-state">No drivers match your search.</p>
+        }
+      </div>
+    </section>
+  </div>
+} @else {
+  <p class="loading-state">Loading drivers…</p>
+}

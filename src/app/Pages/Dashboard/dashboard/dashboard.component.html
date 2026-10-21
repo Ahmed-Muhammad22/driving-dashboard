@@ -1,0 +1,155 @@
+<section class="page-head">
+  <h1>Dashboard</h1>
+  <p>Routes, assignments and driver availability at a glance.</p>
+</section>
+
+@if (data.loaded()) {
+  <section class="stat-grid" aria-label="Summary statistics">
+    <div class="stat-card">
+      <span class="stat-icon" aria-hidden="true">🛣️</span>
+      <div>
+        <div class="stat-value">{{ totalRoutes() }}</div>
+        <div class="stat-label">Total routes</div>
+      </div>
+    </div>
+    <div class="stat-card" #statAssigned>
+      <span class="stat-icon" aria-hidden="true">✅</span>
+      <div>
+        <div class="stat-value">{{ assignedCount() }}</div>
+        <div class="stat-label">Assigned routes</div>
+      </div>
+    </div>
+    <div class="stat-card" #statUnassigned>
+      <span class="stat-icon" aria-hidden="true">⚠️</span>
+      <div>
+        <div class="stat-value">{{ unassignedCount() }}</div>
+        <div class="stat-label">Unassigned routes</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-icon" aria-hidden="true">🧑‍✈️</span>
+      <div>
+        <div class="stat-value">{{ availableDriverCount() }} / {{ totalDrivers() }}</div>
+        <div class="stat-label">Drivers available</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="toolbar">
+    <div class="search-box">
+      <span class="search-icon" aria-hidden="true">🔍</span>
+      <input
+        type="search"
+        placeholder="Search routes, destinations or drivers…"
+        aria-label="Search routes and drivers"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+      />
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <section class="card" aria-label="Routes and assignments">
+      <div class="card-head">
+        <h2>Routes &amp; assignments</h2>
+        <div class="filter-pills" role="group" aria-label="Filter routes by assignment status">
+          @for (option of routeFilterOptions; track option.value) {
+            <button
+              type="button"
+              class="pill-btn"
+              [class.active]="routeFilter() === option.value"
+              (click)="routeFilter.set(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Route</th>
+              <th>Schedule</th>
+              <th>Status</th>
+              <th>Assign driver</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (route of filteredRoutes(); track route.id) {
+              <tr>
+              <td class="route-name" data-label="Route">{{ route.name }}</td>
+              <td class="route-schedule" data-label="Schedule">{{ route.origin }} → {{ route.destination }} · {{ route.scheduledTime }}</td>
+              <td data-label="Status">
+                  @if (route.assignedDriverId; as driverId) {
+                    <span class="badge badge-success">Assigned</span>
+                    <span class="assigned-to">{{ data.driverName(driverId) }}</span>
+                  } @else {
+                    <span class="badge badge-warning">Unassigned</span>
+                  }
+                </td>
+                <td data-label="Driver">
+                  <select
+                    class="assign-select"
+                    aria-label="Assign a driver"
+                    [ngModel]="route.assignedDriverId"
+                    (ngModelChange)="assign(route.id, $event)"
+                  >
+                    <option [ngValue]="null">— None —</option>
+                    @for (driver of data.drivers(); track driver.id) {
+                      <option [ngValue]="driver.id">
+                        {{ driver.name }}{{ driver.available ? '' : ' (off duty)' }}
+                      </option>
+                    }
+                  </select>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="empty-state">No routes match your search or filter.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Drivers">
+      <div class="card-head">
+        <h2>Drivers</h2>
+        <select
+          aria-label="Filter drivers by availability"
+          [ngModel]="driverFilter()"
+          (ngModelChange)="driverFilter.set($event)"
+        >
+          <option value="all">All</option>
+          <option value="available">Available</option>
+          <option value="unavailable">Off duty</option>
+        </select>
+      </div>
+
+      <ul class="driver-list">
+        @for (driver of filteredDrivers(); track driver.id) {
+          <li class="driver-row">
+            <span class="avatar" [class.avatar-off]="!driver.available">{{ initials(driver.name) }}</span>
+            <div class="driver-meta">
+              <span class="driver-name">{{ driver.name }}</span>
+              <span class="driver-sub">{{ driver.license }} · {{ driver.phone }}</span>
+            </div>
+            <span class="badge" [class.badge-success]="driver.available" [class.badge-muted]="!driver.available">
+              {{ driver.available ? 'Available' : 'Off duty' }}
+            </span>
+            <button type="button" class="btn btn-ghost btn-sm" (click)="data.toggleAvailability(driver.id)">
+              {{ driver.available ? 'Set off duty' : 'Set available' }}
+            </button>
+          </li>
+        } @empty {
+          <li class="empty-state">No drivers match your search or filter.</li>
+        }
+      </ul>
+    </section>
+  </div>
+} @else {
+  <p class="loading-state">Loading dashboard data…</p>
+}

@@ -1,0 +1,61 @@
+<section class="page-head">
+  <h1>Availability calendar</h1>
+  <p>Visualise driver availability across the month. Click a driver chip to mark that day off or back on.</p>
+</section>
+
+@if (data.loaded()) {
+  <section class="card" aria-label="Driver availability calendar">
+    <div class="cal-toolbar">
+      <div class="cal-nav">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="changeMonth(-1)" aria-label="Previous month">‹ Prev</button>
+        <button type="button" class="btn btn-ghost btn-sm" (click)="goToToday()">Today</button>
+      </div>
+      <h2>{{ monthLabel() }}</h2>
+      <div class="cal-nav">
+        <button type="button" class="btn btn-ghost btn-sm" (click)="changeMonth(1)" aria-label="Next month">Next ›</button>
+      </div>
+    </div>
+
+    <div class="cal-weekdays" aria-hidden="true">
+      @for (label of weekdayLabels; track label) {
+        <span>{{ label }}</span>
+      }
+    </div>
+
+    <div class="cal-grid" role="grid">
+      @for (week of weeks(); track $index) {
+        @for (day of week.days; track day.iso) {
+          <div
+            class="cal-cell"
+            [class.outside]="!day.inMonth"
+            [class.today]="day.isToday"
+            [attr.aria-label]="day.iso"
+          >
+            <span class="cal-day-num">{{ day.dayOfMonth }}</span>
+            <div class="cal-chips">
+              @for (entry of day.drivers; track entry.driver.id) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.chip-off]="!entry.availableToday"
+                  (click)="data.toggleDriverDate(entry.driver.id, day.iso)"
+                  [title]="entry.driver.name + (entry.availableToday ? ' — available' : ' — off this day')"
+                >
+                  {{ firstName(entry.driver.name) }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+
+    <div class="cal-legend">
+      <span><span class="legend-swatch" style="background: var(--success-bg); border: 1px solid var(--success);"></span>Available that day</span>
+      <span><span class="legend-swatch" style="background: var(--bg); border: 1px dashed var(--border);"></span>Marked off (click to restore)</span>
+      <span>Off-duty drivers are hidden — set them available on the Drivers page.</span>
+    </div>
+  </section>
+} @else {
+  <p class="loading-state">Loading calendar…</p>
+}
